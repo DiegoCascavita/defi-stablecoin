@@ -41,11 +41,11 @@ User
        │ price
        ▼
 ┌──────────────────┐
-│ Chainlink feed   │  ← MockV3Aggregator on Anvil
-│ AggregatorV3     │
+│ Chainlink feed   │  Anvil: MockV3Aggregator
+│ AggregatorV3     │  Sepolia: ETH/USD AggregatorV3 (HelperConfig stub)
 └──────────────────┘
        ▲
-Collateral: mock WETH (ERC20)
+Collateral: Anvil mock WETH · Sepolia WETH9 (Uniswap) via HelperConfig
 ```
 
 | Piece | Role |
