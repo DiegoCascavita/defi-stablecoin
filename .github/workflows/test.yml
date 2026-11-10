@@ -5,15 +5,18 @@ on:
     branches: [main, Master]
   pull_request:
 
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   FOUNDRY_PROFILE: default
 
 jobs:
   check:
-    strategy:
-      fail-fast: true
     name: Foundry project
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,5 +28,9 @@ jobs:
       - name: Show Forge version
         run: forge --version
 
+      - name: Build
+        run: forge build --sizes
+
       - name: Run tests
+        # Basic CI: forge only. No SonarQube / external analysis tokens required.
         run: forge test -vvv
