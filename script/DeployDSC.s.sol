@@ -8,11 +8,14 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 
 /**
  * @title DeployDSC
- * @notice Deploys DSC + DSCEngine for Anvil using HelperConfig mocks.
+ * @notice Deploys DSC + DSCEngine via HelperConfig (Anvil mocks; Sepolia feed/WETH stub).
  *
- * Usage:
+ * Local:
  *   anvil
- *   forge script script/DeployDSC.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
+ *   forge script script/DeployDSC.s.sol:DeployDSC --rpc-url http://127.0.0.1:8545 --broadcast
+ *
+ * Sepolia (owner machine only — needs PRIVATE_KEY, SEPOLIA_RPC_URL; never commit secrets):
+ *   forge script script/DeployDSC.s.sol:DeployDSC --rpc-url $SEPOLIA_RPC_URL --broadcast --verify -vvvv
  */
 contract DeployDSC is Script {
     address[] public tokenAddresses;
