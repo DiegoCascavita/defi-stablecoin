@@ -1,0 +1,24 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x70E2FccDD4bd53fDd1b9bE4d4cc992467576a1DC",
+  "block": 12111759,
+  "contracts": {
+    "DecentralizedStableCoin": "0xF9874bF23a7AcC21c02f09b5934359DEf82C218d",
+    "DSCEngine": "0xd38ecc418891673789F43C74c061909DfED87CD3",
+    "OracleLib": "0x4B3C880E9BF58FB6A5625F03ea0D89C689608b3e",
+    "weth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+    "wethUsdPriceFeed": "0x694AA1769357215DE4FAC081bf1f309aDC325306"
+  },
+  "transactions": {
+    "OracleLib": "0x5ce3dc4896ffbd10760cdd00a18112817d202d04010a0e1a96174861fb7b473c",
+    "DecentralizedStableCoin": "0x02ba754b7c6fad55ab74c45be74c825c5c4ceb39d6a05385140820481538322a",
+    "DSCEngine": "0x7d99ec5b6a168bff6c5bbfc72f2236773347055a8225860032afdfe10ad1b5aa",
+    "transferOwnership": "0x545998311df0946ca771c25459a71c2718a022e9d8f2de432f588a3fabe67ba6"
+  },
+  "notes": {
+    "dscOwner": "DSCEngine",
+    "verifiedOnEtherscan": true,
+    "collateral": "Wrap Sepolia ETH to Uniswap WETH9; no mock mint faucet"
+  }
+}
