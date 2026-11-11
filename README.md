@@ -8,6 +8,26 @@ Repo: [github.com/DiegoCascavita/defi-stablecoin](https://github.com/DiegoCascav
 
 ---
 
+## Cascade Suite
+
+Chapter 1 of a related DeFi portfolio path — not a standalone tutorial island:
+
+```text
+defi-stablecoin  →  defi-lending  →  defi-dapp (Cascade Lend)
+   DSC + HF            dual oracle        Next.js / wagmi
+   liquidations        lending pool       Anvil demo UI
+```
+
+| Step | Repo | Role |
+|---|---|---|
+| 1 | **[defi-stablecoin](https://github.com/DiegoCascavita/defi-stablecoin)** (this repo) | Overcollateralized DSC, `OracleLib`, liquidations |
+| 2 | **[defi-lending](https://github.com/DiegoCascavita/defi-lending)** | Dual-oracle lending market (DAI liquidity + WETH collateral) |
+| 3 | **[defi-dapp](https://github.com/DiegoCascavita/defi-dapp)** | Cascade Lend UI on Anvil `31337` |
+
+**GitHub pins (owner):** pin `defi-lending`, `defi-stablecoin`, and `defi-dapp` on [github.com/DiegoCascavita](https://github.com/DiegoCascavita) via *Customize your pins* — agents cannot change profile pins.
+
+---
+
 ## Architecture
 
 ```
@@ -21,11 +41,11 @@ User
        │ price
        ▼
 ┌──────────────────┐
-│ Chainlink feed   │  ← MockV3Aggregator on Anvil
-│ AggregatorV3     │
+│ Chainlink feed   │  Anvil: MockV3Aggregator
+│ AggregatorV3     │  Sepolia: ETH/USD AggregatorV3 (HelperConfig stub)
 └──────────────────┘
        ▲
-Collateral: mock WETH (ERC20)
+Collateral: Anvil mock WETH · Sepolia WETH9 (Uniswap) via HelperConfig
 ```
 
 | Piece | Role |
@@ -33,7 +53,7 @@ Collateral: mock WETH (ERC20)
 | `DecentralizedStableCoin` | Burnable ERC20; **only the Engine** may mint/burn |
 | `DSCEngine` | Collateral deposit, mint/burn DSC, redeem, liquidations, health factor |
 | `OracleLib` | Circuit breaker if the Chainlink price is stale (> 3 h) |
-| `HelperConfig` + `DeployDSC` | Local Anvil deploy with mock WETH + price feed |
+| `HelperConfig` + `DeployDSC` | Anvil mocks locally; Sepolia stub with Chainlink ETH/USD + WETH (no live broadcast in CI) |
 
 ### Solvency parameters
 
@@ -152,14 +172,36 @@ Burn / redeem / liquidate follow the same pattern (`burnDsc`, `redeemCollateral`
 
 ---
 
+## Sepolia stub (no live deploy from CI)
+
+`HelperConfig` selects config by `block.chainid`:
+
+| Chain | `chainid` | WETH | ETH/USD feed |
+|---|---|---|---|
+| Anvil | `31337` | `ERC20Mock` (deployed) | `MockV3Aggregator` @ $2000 |
+| Sepolia | `11155111` | [`0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`](https://sepolia.etherscan.io/address/0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14) (WETH9) | [`0x694AA1769357215DE4FAC081bf1f309aDC325306`](https://sepolia.etherscan.io/address/0x694AA1769357215DE4FAC081bf1f309aDC325306) (Chainlink) |
+
+Sepolia path **does not** deploy mocks and **does not** broadcast by itself. Owner-only example (secrets in a local gitignored `.env` — never paste keys into chat):
+
+```bash
+# .env (gitignored): SEPOLIA_RPC_URL, PRIVATE_KEY, ETHERSCAN_API_KEY
+source .env
+forge script script/DeployDSC.s.sol:DeployDSC \
+  --rpc-url "$SEPOLIA_RPC_URL" --broadcast --verify -vvvv
+```
+
+After a real deploy, confirm `dsc.owner() == engine` on Sepolia Etherscan. Collateral on Sepolia is real WETH (wrap ETH) — there is no Anvil-style `mint` faucet.
+
+---
+
 ## Features
 
-- Deposit allowlisted ERC20 collateral (mock WETH)
+- Deposit allowlisted ERC20 collateral (mock WETH on Anvil; Sepolia WETH stubbed)
 - Mint DSC against collateral (health factor enforced)
 - Burn DSC and redeem collateral
 - Liquidate under-collateralized positions (10% bonus)
 - AggregatorV3 oracle + `OracleLib` stale-price revert
-- Anvil deploy scripts + mocks
+- Anvil deploy scripts + mocks; Sepolia feed/WETH addresses in `HelperConfig`
 - Unit, fuzz, and solvency invariant tests
 
 ---
