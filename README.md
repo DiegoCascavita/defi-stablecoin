@@ -172,16 +172,26 @@ Burn / redeem / liquidate follow the same pattern (`burnDsc`, `redeemCollateral`
 
 ---
 
-## Sepolia stub (no live deploy from CI)
+## Sepolia (live)
 
-`HelperConfig` selects config by `block.chainid`:
+`HelperConfig` selects config by `block.chainid`. Canonical addresses also live in [`deployments/sepolia.json`](deployments/sepolia.json).
 
 | Chain | `chainid` | WETH | ETH/USD feed |
 |---|---|---|---|
 | Anvil | `31337` | `ERC20Mock` (deployed) | `MockV3Aggregator` @ $2000 |
 | Sepolia | `11155111` | [`0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`](https://sepolia.etherscan.io/address/0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14) (WETH9) | [`0x694AA1769357215DE4FAC081bf1f309aDC325306`](https://sepolia.etherscan.io/address/0x694AA1769357215DE4FAC081bf1f309aDC325306) (Chainlink) |
 
-Sepolia path **does not** deploy mocks and **does not** broadcast by itself. Owner-only example (secrets in a local gitignored `.env` — never paste keys into chat):
+### Deployed contracts (Sepolia `11155111`)
+
+| Contract | Address | Verified |
+|---|---|---|
+| `DecentralizedStableCoin` | [`0xF9874bF23a7AcC21c02f09b5934359DEf82C218d`](https://sepolia.etherscan.io/address/0xF9874bF23a7AcC21c02f09b5934359DEf82C218d#code) | yes |
+| `DSCEngine` | [`0xd38ecc418891673789F43C74c061909DfED87CD3`](https://sepolia.etherscan.io/address/0xd38ecc418891673789F43C74c061909DfED87CD3#code) | yes |
+| `OracleLib` | [`0x4B3C880E9BF58FB6A5625F03ea0D89C689608b3e`](https://sepolia.etherscan.io/address/0x4B3C880E9BF58FB6A5625F03ea0D89C689608b3e#code) | yes |
+
+`dsc.owner()` is the Engine. Collateral on Sepolia is real WETH (wrap ETH) — there is no Anvil-style `mint` faucet.
+
+Owner-only re-deploy example (secrets in a local gitignored `.env` — never paste keys into chat or commit them):
 
 ```bash
 # .env (gitignored): SEPOLIA_RPC_URL, PRIVATE_KEY, ETHERSCAN_API_KEY
@@ -190,18 +200,20 @@ forge script script/DeployDSC.s.sol:DeployDSC \
   --rpc-url "$SEPOLIA_RPC_URL" --broadcast --verify -vvvv
 ```
 
-After a real deploy, confirm `dsc.owner() == engine` on Sepolia Etherscan. Collateral on Sepolia is real WETH (wrap ETH) — there is no Anvil-style `mint` faucet.
+### Suite links (optional)
+
+Cascade Lend UI and lending market use their own Sepolia addresses (`defi-lending` / `defi-dapp`). This DSC deploy is independent chapter-1 infrastructure; the dApp is wired to the lending pool today, not to Vault or DSC Engine.
 
 ---
 
 ## Features
 
-- Deposit allowlisted ERC20 collateral (mock WETH on Anvil; Sepolia WETH stubbed)
+- Deposit allowlisted ERC20 collateral (mock WETH on Anvil; Sepolia WETH9)
 - Mint DSC against collateral (health factor enforced)
 - Burn DSC and redeem collateral
 - Liquidate under-collateralized positions (10% bonus)
 - AggregatorV3 oracle + `OracleLib` stale-price revert
-- Anvil deploy scripts + mocks; Sepolia feed/WETH addresses in `HelperConfig`
+- Anvil deploy scripts + mocks; live Sepolia addresses in `deployments/sepolia.json`
 - Unit, fuzz, and solvency invariant tests
 
 ---
@@ -238,12 +250,12 @@ Interpret `arbitrary-send`, `reentrancy-eth`, `timestamp`, and `divide-before-mu
 
 ---
 
-## Cómo probar (resumen)
+## Quick test summary
 
-1. Instalar Foundry (`foundryup`), luego `forge install && forge build && forge test`.
-2. En una terminal: `anvil`. En otra: `forge script script/DeployDSC.s.sol:DeployDSC --rpc-url http://127.0.0.1:8545 --broadcast -vvvv`.
-3. Con `cast`: mint WETH mock → `approve` → `depositCollateral` → `mintDsc`. Opcional: bajar el precio del feed y llamar `liquidate`.
-4. **No hay UI ni Playwright aquí** — eso va en el proyecto dApp.
+1. Install Foundry (`foundryup`), then `forge install && forge build && forge test`.
+2. Terminal 1: `anvil`. Terminal 2: `forge script script/DeployDSC.s.sol:DeployDSC --rpc-url http://127.0.0.1:8545 --broadcast -vvvv`.
+3. With `cast`: mint mock WETH → `approve` → `depositCollateral` → `mintDsc`. Optional: lower the feed price and call `liquidate`.
+4. **No UI and no Playwright in this repo** — that belongs in the dApp project.
 
 ---
 
